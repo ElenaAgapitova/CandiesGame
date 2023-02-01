@@ -4,13 +4,12 @@ import game
 import random
 import player
 from asyncio import sleep
-import emoji
 import text
 
 
 async def bot_turn(message: types.Message):
     """Обработка хода бота"""
-    await message.answer('Енот думает...' + emoji.emojize("🤔"))
+    await message.answer('Енот думает...🤔')
     await sleep(1)
     total = game.get_total()
     if game.level == 'с умным Енотом':
@@ -23,6 +22,8 @@ async def bot_turn(message: types.Message):
     else:
         if total <= game.update_step():
             take = total
+        elif total <= ((game.update_step()) * 2 + 1) and total % (game.update_step() + 1):
+            take = total % (game.update_step() + 1)
         else:
             take = random.randint(1, game.update_step())
     await message.answer(f'Енот берет {take} {text.declension_sweets(take)[0]}. '

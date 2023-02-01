@@ -7,8 +7,7 @@ import text
 
 async def player_turn(message: types.Message):
     """Ход игрока"""
-    name = message.from_user.full_name
-    await message.answer(f'{name}, твой ход! Сколько конфет возьмешь?')
+    await message.answer('Твой ход! Сколько конфет возьмешь?')
 
 
 async def player_game(message: types.Message, take: str, name: str):

@@ -1,9 +1,10 @@
 """Модуль взаимодействия с пользователем"""
-import random
 
 from aiogram import types
 
 from asyncio import sleep
+
+import kb_inline
 import keybutton
 import bot_raccoon
 import game
@@ -16,7 +17,7 @@ import datetime
 @dp.message_handler(commands=['start', 'старт'])
 async def start(message: types.Message):
     """Приветствие пользователя. Старт"""
-    name = message.from_user.full_name
+    name = message.from_user.first_name
     user_id = message.from_user.id
     img = open('images\\hello.jpg', 'rb')
     await bot.send_photo(user_id, img, caption=f'{name}{text.greetings}',
@@ -26,7 +27,7 @@ async def start(message: types.Message):
     user = list()
     user.append(now.strftime("%d-%m-%Y %H:%M"))
     user.append(user_id)
-    user.append(name)
+    user.append(message.from_user.full_name)
     user.append(message.from_user.username)
     user = list(map(str, user))
     with open('users.txt', 'a', encoding='UTF-8') as data:
@@ -36,7 +37,7 @@ async def start(message: types.Message):
 @dp.message_handler(commands=['rules', 'правила'])
 async def game_rules(message: types.Message):
     """Правила игры"""
-    name = message.from_user.full_name
+    name = message.from_user.first_name
     await message.answer(f'{name}{text.rules}')
 
 
@@ -47,9 +48,9 @@ async def new_game(message: types.Message):
         game.new_game()
     else:
         game.update_total()
-    name = message.from_user.full_name
+    # name = message.from_user.first_name
     if game.check_game():
-        await message.answer(f'{name}, на столе лежит {game.get_total()} '
+        await message.answer(f'На столе лежит {game.get_total()} '
                              f'{(text.declension_sweets(game.get_total()))[1]}.\n\n'
                              f'Бросим кость🎲\n<b>Чет</b> - ходишь ты!\n<b>Нечет</b>- ходит Енот!')
         dice_msg = await message.answer_dice()
@@ -59,7 +60,7 @@ async def new_game(message: types.Message):
         if not dice_value % 2:
             await player.player_turn(message)
         else:
-            await message.answer(f'{name}, первый ходит Енот!')
+            await message.answer(f'Первый ходит Енот!')
             await bot_raccoon.bot_turn(message)
 
 
@@ -106,7 +107,7 @@ async def game_level(message: types.Message):
 @dp.message_handler(commands=['menu', 'меню'])
 async def show_menu(message: types.Message):
     """Меню всех доступных команд"""
-    name = message.from_user.full_name
+    name = message.from_user.first_name
     await message.answer(f'{name}{text.menu}')
 
 
@@ -116,12 +117,30 @@ async def stop_game(message: types.Message):
     game.new_game()
     img = open('images\\stopgame.jpg', 'rb')
     await bot.send_photo(message.from_user.id, img, caption=f'{text.stop_game}')
+    await message.answer(text='Когда передумаешь, жми👇', reply_markup=kb_inline.markup2)
+
+
+@dp.callback_query_handler(text='up')
+async def wake_up(callback: types.CallbackQuery):
+    await new_game(callback.message)
+
+
+@dp.callback_query_handler(text=kb_inline.callback_list)
+async def get_result(callback: types.CallbackQuery):
+    result = callback.data
+    if result == 'yes':
+        await new_game(callback.message)
+    else:
+        img = open('images\\stopgame.jpg', 'rb')
+        await bot.send_photo(callback.from_user.id, img, caption=f'{text.stop_game}')
+        await callback.message.answer(text='Когда передумаешь, жми👇',
+                                      reply_markup=kb_inline.markup2)
 
 
 @dp.message_handler()
 async def game_sweets(message: types.Message):
     """Обработка всех остальных сигналов от пользователя"""
-    name = message.from_user.full_name
+    name = message.from_user.first_name
     take = message.text
     if game.check_game():
         await player.player_game(message, take, name)

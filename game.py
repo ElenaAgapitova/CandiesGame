@@ -1,6 +1,8 @@
 """Модуль игры"""
 from aiogram import types
+
 from create import bot
+import kb_inline
 
 set_total = 150
 total = set_total
@@ -73,7 +75,7 @@ def check_game():
 
 async def check_win(message: types.Message, player: str):
     """Проверка возможности выигрыша после хода игрока или бота"""
-    name = message.from_user.full_name
+    name = message.from_user.first_name
     user_id = message.from_user.id
     global game
     global level
@@ -81,12 +83,13 @@ async def check_win(message: types.Message, player: str):
     img2 = open('images\\yes.jpg', 'rb')
     if get_total() == 0:
         if player == 'player':
-            await bot.send_photo(user_id, img2, caption=f'Конфет больше нет!\n{name}, ты забираешь '
-                                                        f'все конфеты. Поздравляю!🥇'
-                                                        f'\n\nСыграем еще? => /new_game')
+            await bot.send_photo(user_id, img2, caption=f'Конфет на столе больше нет!'
+                                                        f'\n{name}, ты забираешь '
+                                                        f'всё.\nПоздравляю!🥇')
+            await message.answer(text='Сыграем еще?😉', reply_markup=kb_inline.markup)
         else:
-            await bot.send_photo(user_id, img1, caption=f'Конфет больше нет!\nВыиграл Енот!🎉\n'
-                                                        '\nКак насчет реванша?:) => /new_game')
+            await bot.send_photo(user_id, img1, caption=f'Конфет больше нет!\nВыиграл Енот!🎉\n')
+            await message.answer(text='Как насчет реванша?😎', reply_markup=kb_inline.markup)
         new_game()
         return True
     else:
