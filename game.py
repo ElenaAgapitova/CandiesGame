@@ -129,7 +129,7 @@ async def start_game(user_id: int):
 async def show_param(user_id: int):
     await bot.send_message(chat_id=user_id,
                            text=f'<b><u>Параметры игры:</u></b>\n'
-                                f'\t▸ Конфеты на столе - {users[user_id]["candy_total"]}\n'
+                                f'\t▸ Конфет на столе - {users[user_id]["candy_total"]}\n'
                                 f'\t▸ Максимальное количество конфет за ход - '
                                 f'{users[user_id]["step"]}\n'
                                 f'\t▸ Играешь {users[user_id]["level"]}')
