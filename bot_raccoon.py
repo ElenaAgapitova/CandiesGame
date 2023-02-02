@@ -29,7 +29,8 @@ async def bot_turn(message: types.Message):
     await message.answer(f'Енот берет {take} {text.declension_sweets(take)[0]}. '
                          f'На столе осталось {game.take_sweets(take)} '
                          f'{text.declension_sweets(game.get_total())[1]}.')
-
+    game.whose_turn = True
     if await game.check_win(message, 'bot'):
         return
+    # game.whose_turn = True
     await player.player_turn(message)

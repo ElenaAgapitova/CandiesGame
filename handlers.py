@@ -54,9 +54,10 @@ async def new_game(message: types.Message):
                              f'{(text.declension_sweets(game.get_total()))[1]}.\n\n'
                              f'Бросим кость🎲\n<b>Чет</b> - ходишь ты!\n<b>Нечет</b>- ходит Енот!')
         dice_msg = await message.answer_dice()
+        await sleep(3)
         dice_value = dice_msg.dice.value
-        await sleep(5)
-        await message.answer(f'Выпало <b>{dice_value}</b>!')
+        # await sleep(3)
+        game.whose_turn = dice_value % 2 == 0
         if not dice_value % 2:
             await player.player_turn(message)
         else:
@@ -114,7 +115,7 @@ async def show_menu(message: types.Message):
 @dp.message_handler(commands=['stop', 'стоп'])
 async def stop_game(message: types.Message):
     """Закончить игру"""
-    game.new_game()
+    game.game = False
     img = open('images\\stopgame.jpg', 'rb')
     await bot.send_photo(message.from_user.id, img, caption=f'{text.stop_game}')
     await message.answer(text='Когда передумаешь, жми👇', reply_markup=kb_inline.markup2)
@@ -143,6 +144,9 @@ async def game_sweets(message: types.Message):
     name = message.from_user.first_name
     take = message.text
     if game.check_game():
-        await player.player_game(message, take, name)
+        if game.whose_turn:
+            await player.player_game(message, take, name)
+        else:
+            await message.delete()
     else:
         await message.answer(f'{name}{text.menu}')

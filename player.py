@@ -22,6 +22,7 @@ async def player_game(message: types.Message, take: str, name: str):
             await message.answer(f'{name}, можно брать не менее 1 и '
                                  f'не более {game.update_step()}👆')
         elif 1 <= take <= game.update_step():
+            game.whose_turn = False
             game.take_sweets(take)
             if await game.check_win(message, 'player'):
                 return

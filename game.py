@@ -10,6 +10,7 @@ game = False
 level = 'с глупым Енотом'
 step = 28
 set_step = 28
+whose_turn = ''
 
 
 def update_step():
@@ -75,6 +76,7 @@ def check_game():
 
 async def check_win(message: types.Message, player: str):
     """Проверка возможности выигрыша после хода игрока или бота"""
+    global whose_turn
     name = message.from_user.first_name
     user_id = message.from_user.id
     global game
@@ -83,11 +85,13 @@ async def check_win(message: types.Message, player: str):
     img2 = open('images\\yes.jpg', 'rb')
     if get_total() == 0:
         if player == 'player':
+            whose_turn = False
             await bot.send_photo(user_id, img2, caption=f'Конфет на столе больше нет!'
                                                         f'\n{name}, ты забираешь '
                                                         f'всё.\nПоздравляю!🥇')
             await message.answer(text='Сыграем еще?😉', reply_markup=kb_inline.markup)
         else:
+            whose_turn = False
             await bot.send_photo(user_id, img1, caption=f'Конфет больше нет!\nВыиграл Енот!🎉\n')
             await message.answer(text='Как насчет реванша?😎', reply_markup=kb_inline.markup)
         new_game()
