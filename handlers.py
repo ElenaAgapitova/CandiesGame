@@ -2,16 +2,28 @@
 
 from aiogram import types
 
-from asyncio import sleep
-
 import kb_inline
 import keybutton
-import bot_raccoon
 import game
 import player
 from create import dp, bot
 import text
-import datetime
+
+
+def default_decorator(func):
+    async def wrapper(*args):
+        user_id = args[0].from_user.id
+        if user_id in game.users.keys():
+            return await func(*args)
+        else:
+            await bot.send_message(chat_id=user_id,
+                                   text=text.help_answer)
+            game.users[user_id] = {'candy_total': game.SET_TOTAL, 'change_total': game.SET_TOTAL,
+                                   'step': game.SET_STEP, 'turn': None,
+                                   'level': game.LEVEL, 'game': False}
+            return await func(*args)
+
+    return wrapper
 
 
 @dp.message_handler(commands=['start', 'старт'])
@@ -22,16 +34,12 @@ async def start(message: types.Message):
     img = open('images\\hello.jpg', 'rb')
     await bot.send_photo(user_id, img, caption=f'{name}{text.greetings}',
                          reply_markup=keybutton.kb_menu)
+    user_id = message.from_user.id
+    game.users[user_id] = {'candy_total': game.SET_TOTAL, 'change_total': game.SET_TOTAL,
+                           'step': game.SET_STEP, 'turn': None,
+                           'level': game.LEVEL, 'game': False}
 
-    now = datetime.datetime.now()
-    user = list()
-    user.append(now.strftime("%d-%m-%Y %H:%M"))
-    user.append(user_id)
-    user.append(message.from_user.full_name)
-    user.append(message.from_user.username)
-    user = list(map(str, user))
-    with open('users.txt', 'a', encoding='UTF-8') as data:
-        data.write(' | '.join(user) + '\n')
+    await player.log_user(message)
 
 
 @dp.message_handler(commands=['rules', 'правила'])
@@ -42,36 +50,22 @@ async def game_rules(message: types.Message):
 
 
 @dp.message_handler(commands=['new_game', 'игра'])
+@default_decorator
 async def new_game(message: types.Message):
     """Запуск игры"""
-    if not game.check_game():
-        game.new_game()
-    else:
-        game.update_total()
-    # name = message.from_user.first_name
-    if game.check_game():
-        await message.answer(f'На столе лежит {game.get_total()} '
-                             f'{(text.declension_sweets(game.get_total()))[1]}.\n\n'
-                             f'Бросим кость🎲\n<b>Чет</b> - ходишь ты!\n<b>Нечет</b>- ходит Енот!')
-        dice_msg = await message.answer_dice()
-        await sleep(3)
-        dice_value = dice_msg.dice.value
-        # await sleep(3)
-        game.whose_turn = dice_value % 2 == 0
-        if not dice_value % 2:
-            await player.player_turn(message)
-        else:
-            await message.answer(f'Первый ходит Енот!')
-            await bot_raccoon.bot_turn(message)
+    user_id = message.chat.id
+    await game.start_game(user_id)
 
 
 @dp.message_handler(commands=['set_total', 'хочу'])
+@default_decorator
 async def set_total(message: types.Message):
     """Изменить количество конфет"""
-    if not game.check_game():
+    user_id = message.from_user.id
+    if not game.check_game(user_id):
         total = message.text.split()
         if len(total) > 1 and total[1].isdigit():
-            game.set_total_sweets(int(total[1]))
+            game.update_total(user_id, int(total[1]))
             await message.answer(f'Kоличество конфет изменено на {total[1]}'
                                  f'\nНачать игру => /new_game')
         else:
@@ -81,12 +75,14 @@ async def set_total(message: types.Message):
 
 
 @dp.message_handler(commands=['step', 'шаг'])
+@default_decorator
 async def set_step(message: types.Message):
     """Изменить количество конфет за ход"""
-    if not game.check_game():
+    user_id = message.from_user.id
+    if not game.check_game(user_id):
         total = message.text.split()
         if len(total) > 1 and total[1].isdigit():
-            game.set_step_sweets(int(total[1]))
+            await game.update_step(user_id, int(total[1]))
             await message.answer(f'Максимальное количество конфет за ход изменено на {total[1]}'
                                  f'\nНачать игру => /new_game')
         else:
@@ -95,12 +91,21 @@ async def set_step(message: types.Message):
         await message.answer(text.answer2_for_set_step)
 
 
-@dp.message_handler(commands=['level', 'уровень'])
+@dp.message_handler(commands=['param'])
+@default_decorator
+async def show_params(message: types.Message):
+    """Вывод параметров"""
+    await game.show_param(message.from_user.id)
+
+
+@dp.message_handler(commands=['difficult', 'сложность'])
+@default_decorator
 async def game_level(message: types.Message):
     """Изменить уровень сложности игры"""
-    if not game.check_game():
-        level = game.change_level()
-        await message.answer(f'Ты будешь играть {level}')
+    user_id = message.from_user.id
+    if not game.users[user_id]['game']:
+        await game.update_level(user_id)
+        await message.answer(f'Ты будешь играть {game.users[user_id]["level"]}')
     else:
         await message.answer(text.answer_for_level)
 
@@ -113,26 +118,35 @@ async def show_menu(message: types.Message):
 
 
 @dp.message_handler(commands=['stop', 'стоп'])
+@default_decorator
 async def stop_game(message: types.Message):
     """Закончить игру"""
-    game.game = False
-    img = open('images\\stopgame.jpg', 'rb')
+    user_id = message.from_user.id
+    game.users[user_id]['game'] = False
+    img = open('images\\stop_game.jpg', 'rb')
     await bot.send_photo(message.from_user.id, img, caption=f'{text.stop_game}')
     await message.answer(text='Когда передумаешь, жми👇', reply_markup=kb_inline.markup2)
 
 
 @dp.callback_query_handler(text='up')
+@default_decorator
 async def wake_up(callback: types.CallbackQuery):
-    await new_game(callback.message)
+    user_id = callback.from_user.id
+    await game.start_game(user_id)
+    await callback.answer()
 
 
 @dp.callback_query_handler(text=kb_inline.callback_list)
+@default_decorator
 async def get_result(callback: types.CallbackQuery):
     result = callback.data
     if result == 'yes':
-        await new_game(callback.message)
+        user_id = callback.from_user.id
+        await game.start_game(user_id)
+        await callback.answer()
     else:
-        img = open('images\\stopgame.jpg', 'rb')
+        await callback.answer()
+        img = open('images\\stop_game.jpg', 'rb')
         await bot.send_photo(callback.from_user.id, img, caption=f'{text.stop_game}')
         await callback.message.answer(text='Когда передумаешь, жми👇',
                                       reply_markup=kb_inline.markup2)
@@ -141,12 +155,15 @@ async def get_result(callback: types.CallbackQuery):
 @dp.message_handler()
 async def game_sweets(message: types.Message):
     """Обработка всех остальных сигналов от пользователя"""
+    user_id = message.from_user.id
     name = message.from_user.first_name
     take = message.text
-    if game.check_game():
-        if game.whose_turn:
-            await player.player_game(message, take, name)
-        else:
-            await message.delete()
+    if user_id in game.users.keys():
+        if game.check_game(user_id):
+            if game.users[user_id]['turn']:
+                await player.player_game(user_id, take, name)
+            else:
+                await message.delete()
     else:
-        await message.answer(f'{name}{text.menu}')
+        await message.answer(f'{name}, я не понял, что ты хочешь🤨\n'
+                             f'Попробуй найти что-то в меню => /menu')

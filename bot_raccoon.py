@@ -1,36 +1,38 @@
 """Модуль бота"""
-from aiogram import types
 import game
 import random
 import player
 from asyncio import sleep
 import text
+from create import bot
 
 
-async def bot_turn(message: types.Message):
+async def bot_turn(user_id):
     """Обработка хода бота"""
-    await message.answer('Енот думает...🤔')
+    await bot.send_message(chat_id=user_id, text='Енот думает...🤔')
     await sleep(1)
-    total = game.get_total()
-    if game.level == 'с умным Енотом':
-        if total <= game.update_step():
+    total = game.get_total(user_id)
+    if game.users[user_id]['level'] == 'с умным Енотом':
+        if total <= game.users[user_id]['step']:
             take = total
-        elif total % (game.update_step() + 1):
-            take = total % (game.update_step() + 1)
+        elif total % (game.users[user_id]['step'] + 1):
+            take = total % (game.users[user_id]['step'] + 1)
         else:
-            take = random.randint(1, game.update_step())
+            take = random.randint(1, game.users[user_id]['step'])
     else:
-        if total <= game.update_step():
+        if total <= game.users[user_id]['step']:
             take = total
-        elif total <= ((game.update_step()) * 2 + 1) and total % (game.update_step() + 1):
-            take = total % (game.update_step() + 1)
+        elif total <= ((game.users[user_id]['step']) * 2 + 1) \
+                and total % (game.users[user_id]['step'] + 1):
+            take = total % (game.users[user_id]['step'] + 1)
         else:
-            take = random.randint(1, game.update_step())
-    await message.answer(f'Енот берет {take} {text.declension_sweets(take)[0]}. '
-                         f'На столе осталось {game.take_sweets(take)} '
-                         f'{text.declension_sweets(game.get_total())[1]}.')
-    game.whose_turn = True
-    if await game.check_win(message, 'bot'):
+            take = random.randint(1, game.users[user_id]['step'])
+    bot_msg = await bot.send_message(chat_id=user_id,
+                                     text=f'Енот берет {take} {text.declension_sweets(take)[0]}. '
+                                          f'На столе осталось {game.take_sweets(user_id, take)} '
+                                          f'{text.declension_sweets(game.get_total(user_id))[1]}.')
+    name = bot_msg.from_user.first_name
+    if await game.check_win(user_id, name, 'bot'):
         return
-    # game.whose_turn = True
-    await player.player_turn(message)
+    game.users[user_id]['turn'] = True
+    await player.player_turn(user_id)
