@@ -68,5 +68,6 @@ async def player_game(user_id: int, take: str, name: str):
                                             f'Ходит Енот!')
                 await bot_raccoon.bot_turn(user_id)
     else:
+        # await bot.delete_message(chat_id=user_id, message_id=)
         await bot.send_message(chat_id=user_id,
                                text=f'Что-то тут не то! Вводи число🤦')

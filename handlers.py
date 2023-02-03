@@ -152,6 +152,13 @@ async def get_result(callback: types.CallbackQuery):
                                       reply_markup=kb_inline.markup2)
 
 
+async def delete_mes(message: types.Message):
+    name = message.from_user.first_name
+    await message.delete()
+    await message.answer(f'{name}, я не понял, что ты хочешь🤨\n'
+                         f'Попробуй найти что-то в меню => /menu')
+
+
 @dp.message_handler()
 async def game_sweets(message: types.Message):
     """Обработка всех остальных сигналов от пользователя"""
@@ -164,6 +171,7 @@ async def game_sweets(message: types.Message):
                 await player.player_game(user_id, take, name)
             else:
                 await message.delete()
+        else:
+            await delete_mes(message)
     else:
-        await message.answer(f'{name}, я не понял, что ты хочешь🤨\n'
-                             f'Попробуй найти что-то в меню => /menu')
+        await delete_mes(message)

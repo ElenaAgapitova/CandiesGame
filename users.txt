@@ -28,3 +28,8 @@
 02-02-2023 23:51 | id: 1254849279 | full_name: Елена | username: Raccoon1001
 02-02-2023 23:51 | id: 1254849279 | full_name: Елена | username: Raccoon1001
 03-02-2023 01:22 | id: 284685736 | full_name: Андрей | username: ingiter
+03-02-2023 02:57 | id: 1254849279 | full_name: Елена | username: Raccoon1001
+03-02-2023 09:05 | id: 1918110455 | full_name: Andrew | username: None
+03-02-2023 09:05 | id: 1918110455 | full_name: Andrew | username: None
+03-02-2023 09:05 | id: 1918110455 | full_name: Andrew | username: None
+03-02-2023 09:07 | id: 1918110455 | full_name: Andrew | username: None
