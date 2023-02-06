@@ -12,30 +12,12 @@ LEVEL = 'с глупым Енотом'
 users = {}
 
 
-def default_decorator(func):
-    async def wrapper(*args, **kwargs):
-        user_id = args[0]
-        if user_id in users.keys():
-            return await func(*args, **kwargs)
-        else:
-            await bot.send_message(chat_id=user_id,
-                                   text='Что-то пошло не так... Сейчас все поправим😇'
-                                        '\nПопробуй еще разок.')
-            users[user_id] = {'candy_total': SET_TOTAL, 'change_total': SET_TOTAL,
-                              'step': SET_STEP, 'turn': None,
-                              'level': LEVEL, 'game': False}
-            print(users)
-    return wrapper
-
-
-# @default_decorator
 async def update_step(user_id: int, value: int):
     """Изменить максимальное количество конфет за ход"""
     users[user_id]['step'] = value
     return users[user_id]['step']
 
 
-# @default_decorator
 def update_total(user_id: int, value: int) -> int:
     """Обновление количества конфет до начального заданного значения
     или по умолчанию"""
@@ -43,20 +25,17 @@ def update_total(user_id: int, value: int) -> int:
     return users[user_id]['change_total']
 
 
-# @default_decorator
 def get_total(user_id: int) -> int:
     """Получить текущее количество конфет"""
     return users[user_id]['candy_total']
 
 
-# @default_decorator
 def take_sweets(user_id: int, take: int):
     """Изменение количества конфет после хода игрока или бота"""
     users[user_id]['candy_total'] -= take
     return users[user_id]['candy_total']
 
 
-# @default_decorator
 def new_game(user_id: int):
     """Старт новой игры и обновление настроек"""
     if users[user_id]['game']:
@@ -66,13 +45,11 @@ def new_game(user_id: int):
     return users[user_id]['game']
 
 
-# @default_decorator
 def check_game(user_id: int):
     """Статус игры"""
     return users[user_id]['game']
 
 
-# @default_decorator
 async def check_win(user_id: int, name: str, whose_turn: str):
     """Проверка возможности выигрыша после хода игрока или бота"""
     img1 = open('images\\no.jpg', 'rb')
@@ -96,7 +73,6 @@ async def check_win(user_id: int, name: str, whose_turn: str):
         return False
 
 
-# @default_decorator
 async def update_level(user_id: int):
     """Изменить уровень игры"""
     if users[user_id]['level'] == 'с глупым Енотом':
@@ -105,7 +81,6 @@ async def update_level(user_id: int):
         users[user_id]['level'] = 'с глупым Енотом'
 
 
-# @default_decorator
 async def start_game(user_id: int):
     """Новая игра"""
     users[user_id]['candy_total'] = users[user_id]['change_total']
