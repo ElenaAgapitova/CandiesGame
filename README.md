@@ -12,3 +12,5 @@
 ✅Перед началом игры можно выбрать уровень игры, максимальное количество конфет за ход и сколько всего конфет будет лежать на столе.
 
 ❌Во время игры данные изменения внести не получится!
+
+[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=ElenaAgapitova&repo=CandiesGame)](https://github.com/anuraghazra/github-readme-stats)
