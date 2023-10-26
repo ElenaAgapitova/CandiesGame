@@ -13,4 +13,3 @@
 
 ❌Во время игры данные изменения внести не получится!
 
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=ElenaAgapitova&repo=CandiesGame)](https://github.com/anuraghazra/github-readme-stats)
